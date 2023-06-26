@@ -72,7 +72,7 @@ try:
         command = json.loads(out)['name']
         # Если команда - execute_shell, выполняем команду в терминале
         if command == "execute_shell":
-            os.system(json.loads(out)['args']
+            os.system(json.loads(out)['args'])
         else:
             print('Неизвестная команда от gpt...')
     else:

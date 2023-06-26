@@ -28,7 +28,8 @@ Answer format:
     The format of the response should be a json example of which will be given below:
     JSON response format:
         {"name" : "here is the name of command", "args": "here is the args"}
-    Make sure your response can be read with json.loads().
+    Make sure your response can be read with json.loads(). """+f"""
+Make sure your console command is for the OS {platform.uname()[0]} {platform.uname()[1]}.
 Be sure to answer ONLY in JSON format."""
 
 # Функция для отправки запроса на сервер и получения ответа

@@ -1,8 +1,3 @@
-# Не пиздите код плеееез.
-# Зависимости положил в requirements.txt
-
-
-
 import json  # импортируем модуль json для работы с JSON-данными
 import requests  # импортируем модуль requests для отправки HTTP-запросов
 from translate import Translator  # импортируем модуль Translator из библиотеки googletrans для перевода текста
@@ -16,8 +11,7 @@ translator = Translator(to_lang='en', from_lang='ru')  # создаем объе
 prompt = """Main task is: Create a test file.
 Assistant: {'name', 'execute_shell', 'args': 'touch test'}
 User: Success.
-Assistant: {'name', 'end', 'args': 'task complete successful'}
-Main task is: """ + f"""
+Assistant: {'name', 'end', 'args': 'task complete successful'}""" + f"""
 System:
 Behavior:
     You are an AI console and should return commands based on what the user presented to you in the text view.

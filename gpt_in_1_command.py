@@ -1,8 +1,8 @@
-#если нужно без множества команд то юзайте этот файл. тут gpt выполняет только 1 команду и всё.
 import json  # импортируем модуль json для работы с JSON-данными
 import requests  # импортируем модуль requests для отправки HTTP-запросов
 from translate import Translator  # импортируем модуль Translator из библиотеки googletrans для перевода текста
-import os  # импортируем модуль os для работы с операционной системой и выполнения команд в терминале
+import subprocess  # импортируем модуль subprocess для выполнения команд в терминале
+import os  # импортируем модуль os для работы с операционной системой
 import platform  # импортируем модуль platform для получения информации о системе
 
 translator = Translator(to_lang='en', from_lang='ru')  # создаем объект Translator для перевода текста на английский язык
@@ -72,10 +72,12 @@ try:
         command = json.loads(out)['name']
         # Если команда - execute_shell, выполняем команду в терминале
         if command == "execute_shell":
-            output = os.system(json.loads(out)['args'])
+            os.system(json.loads(out)['args']
         else:
             print('Неизвестная команда от gpt...')
-    # Обрабатываем исключение ChunkedEncodingError
-    except requests.exceptions.ChunkedEncodingError:
-        print("Ошибка запроса, попробуйте еще раз.")
+    else:
+        print("Ничего не сделано...")
+# Обрабатываем исключение ChunkedEncodingError
+except requests.exceptions.ChunkedEncodingError:
+    print("Ошибка запроса, попробуйте еще раз.")
 print("Done.")

@@ -1,3 +1,8 @@
+# Не пиздите код плеееез.
+
+
+
+
 import json  # импортируем модуль json для работы с JSON-данными
 import requests  # импортируем модуль requests для отправки HTTP-запросов
 from translate import Translator  # импортируем модуль Translator из библиотеки googletrans для перевода текста

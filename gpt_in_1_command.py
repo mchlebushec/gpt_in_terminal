@@ -20,6 +20,7 @@ Limitations:
     Remember that if you are running on a linux system, you must use the package manager of that distribution to install the python libraries, not pip.
     You have no files and you have to create them or search for them yourself (on linux it is find -name "file name or part of it", on windows dir <disk to search> /s | find /i "<your text>").
     For 1 answer you can use only 1 command.
+    Always close such signs as " { '.
     When writing commands do not use the \ sign before the quotes, write commands as if directly into the console.
     Before using any utilities, try to install them on the PC.
     No help from the user and no questions to the user.
@@ -66,9 +67,9 @@ try:
     # Запрашиваем ответ от сервера
     out1 = ask(endPrompt)
     # Извлекаем из ответа JSON-строку
-    start = out1.find("{") + 1
+    start = out1.find("{")
     end = out1.find("}") + 1
-    out = "{" + out1[start:end]
+    out = out1[start:end]
     print(out)
     status = input('Вы подтверждаете выполнение данной команды (y/n)? >> ')
     if status == 'y':

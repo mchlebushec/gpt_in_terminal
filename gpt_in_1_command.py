@@ -26,7 +26,7 @@ Limitations:
     No help from the user and no questions to the user.
 Answer format:
     Commands (use only them):
-        1. execute_shell: execute command in shell and return result, name: "execute_shell", args: "console command"
+        1. "name": "execute_shell", execute command in shell and return result, args: "console command"
     The format of the response should be a json example of which will be given below:
     JSON response format:
         {"name" : "here is the name of command", "args": "here is the args"}

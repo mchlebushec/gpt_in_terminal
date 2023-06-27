@@ -6,7 +6,7 @@ import os  # импортируем модуль os для работы с оп�
 import platform  # импортируем модуль platform для получения информации о системе
 
 translator = Translator(to_lang='en', from_lang='ru')  # создаем объект Translator для перевода текста на английский язык
-
+translator_to_ru = Translator(to_lang='ru', from_lang='en')
 # Создаем переменную prompt с информацией о системе и ограничениях
 prompt = """Main task is: Create a test file.
 Assistant: {'name', 'execute_shell', 'args': 'touch test'}""" + f"""System:
@@ -31,7 +31,8 @@ Answer format:
     Make sure your response can be read with json.loads(). """+f"""
 Make sure your console command is for the OS {platform.uname()[0]} {platform.uname()[1]}.
 Be sure to answer ONLY in JSON format."""
-
+if platform.uname()[0].lower() == 'windows':
+    print("Внимание!!! Для корректной установки доп. утилит на Windows у вас должен быть установлен пакетный менедежр choco и утилита git (желательно)....")
 # Функция для отправки запроса на сервер и получения ответа
 def ask(prompt):
     # Подготавливаем данные для запроса
@@ -72,6 +73,46 @@ try:
     if status == 'y':
         # Извлекаем из JSON-строки имя команды
         command = json.loads(out)['name']
+        prompt_for_util = """User: command: git clone https://github.com/mchlebushec/gpt_in_terminal. Windows 10 OS.
+Assistant: {"command": "install", "args": "choco install git.install --params "'/GitAndUnixToolsOnPath /WindowsTerminal /NoAutoCrlf'""}
+User: command: pwd. Arch linux OS.
+Assistant: {"command": "system", "args": "any text"}
+User: command: git clone https://github.com/mchlebushec/gpt_in_terminal. Arch linux OS.
+Assistant: {"command": "install", "args": "sudo pacman -S git"}
+System:
+    Behavior:
+        you are the AI that determines if a utility is system utility by a command from the terminal. you will be sent a terminal and OS command, and you answer either "yes, it is system", or "no, here is a one line command to install it: (here command without brackets)", or "I cannot install utility <name of utility without quotation marks>".
+    Limitations:
+        to install utilities on Linux, use the package manager (built-in).
+        To install utilities on Windows use the choco package manager or the git utility.
+    Commands:
+        1) "command" "system", means you can execute without installing utilities, "args": "any text"
+        2) "command": "install", means you know the command to install the utility, "args": "command to install"
+        3) "command": "cannot", means you can't install it yourself in terminal (even if the utility is installed by default on the system you still shouldn't use this command unless you can't install the utility), "args": "any text"
+    Answer format:
+        you answer only in the john format below:
+            {"command": "command name", "args": "command argument"}
+        Make sure your response can be read with json.loads() in python."""
+        command_install_status = ask(prompt_for_util + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS")
+        command_install_status = json.loads(command_install_status[command_install_status.find("{"):command_install_status.rfind("}")+1])
+        if command_install_status['command'] == 'system':
+            print("Команда является системной, продолжение работы.")
+        elif command_install_status['command'] == 'install':
+            confirmation = input("Утилита используемая в команде не является системной, команда для установки: '" + command_install_status['args'] + "'. подтверждаете ее установку? (y/n) >> ")
+            if confirmation == 'y':
+                print("Запуск установки утилиты....")
+                os.system(command_install_status['args'])
+                print("Установка завершена! ")
+            elif confirmation == 'n':
+                print("Пропуск установки уилиты....")
+                print("ВНИМАНИЕ! Основная команда может не сработать!")
+        elif command_install_status['command'] == 'cannot':
+            print("Отзыв от ИИ: " + translator_to_ru.translate(command_install_status['args']))
+            status = input("Сожалеем, но программа не может установить утилиту используемую в команде. Установлена ли утилита для данной команды? (y/n) >> ")
+            if status == 'y':
+                print("Утилита установлена, продолжение работы....")
+            elif status == 'n':
+                print("Утилита не установлена, могут возникнуть ошибки в процессе выполнения команды....")
         # Если команда - execute_shell, выполняем команду в терминале
         if command == "execute_shell":
             os.system(json.loads(out)['args'])

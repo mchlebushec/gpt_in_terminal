@@ -98,6 +98,7 @@ System:
         command_install_status = ask(prompt_for_util + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS")
         command_install_status = json.loads(command_install_status[command_install_status.find("{"):command_install_status.rfind("}")+1])
         if command_install_status['command'] == 'system':
+            print("Комментарий ИИ: " + command_install_status['args'] )
             print("Команда является системной, продолжение работы.")
         elif command_install_status['command'] == 'install':
             confirmation = input("Утилита используемая в команде не является системной, команда для установки: '" + command_install_status['args'] + "'. подтверждаете ее установку? (y/n) >> ")

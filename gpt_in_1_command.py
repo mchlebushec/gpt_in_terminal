@@ -68,7 +68,7 @@ try:
     out1 = ask(endPrompt)
     # Извлекаем из ответа JSON-строку
     start = out1.find("{")
-    end = out1.find("}") + 1
+    end = out1.rfind("}") + 1
     out = out1[start:end]
     print(out)
     status = input('Вы подтверждаете выполнение данной команды (y/n)? >> ')

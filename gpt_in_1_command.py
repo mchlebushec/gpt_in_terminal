@@ -124,7 +124,6 @@ System:
         #Проверка нужны ли зависимости
         if commandInstallStatus['command'] == 'system':
             # Не нужны
-            print("Комментарий ИИ: " + commandInstallStatus['args'] )
             print("Команда является системной, продолжение работы.")
         
         elif commandInstallStatus['command'] == 'install':
@@ -142,8 +141,6 @@ System:
         
         elif commandInstallStatus['command'] == 'cannot':
             # Зависимости нужны но бот не может их установить самостоятельно
-            print("Отзыв от ИИ: " + translatorToRu.translate(commandInstallStatus['args']))
-            
             status = input("Сожалеем, но программа не может установить утилиту используемую в команде. Установлена ли утилита для данной команды? (y/n) >> ")
             
             # Проверка установлена ли утилита

@@ -1,13 +1,15 @@
-import json  # импортируем модуль json для работы с JSON-данными
-import requests  # импортируем модуль requests для отправки HTTP-запросов
-from translate import Translator  # импортируем модуль Translator из библиотеки googletrans для перевода текста
-import subprocess  # импортируем модуль subprocess для выполнения команд в терминале
-import os  # импортируем модуль os для работы с операционной системой
-import platform  # импортируем модуль platform для получения информации о системе
+#импорты
+import json  
+import requests 
+from translate import Translator
+from os import getlogin, system
+import platform
 
-translator = Translator(to_lang='en', from_lang='ru')  # создаем объект Translator для перевода текста на английский язык
+# Переводчики
+translator = Translator(to_lang='en', from_lang='ru')
 translator_to_ru = Translator(to_lang='ru', from_lang='en')
-# Создаем переменную prompt с информацией о системе и ограничениях
+
+# Основной промт для GPT для генерации команд
 prompt = """Main task is: Create a test file.
 Assistant: {'name', 'execute_shell', 'args': 'touch test'}""" + f"""System:
 Behavior:
@@ -15,7 +17,7 @@ Behavior:
 System information:
     System: {platform.uname()[0]}
     Node: {platform.uname()[1]}
-    Current user: {os.getlogin()}""" + """
+    Current user: {getlogin()}""" + """
 Limitations:
     Remember that if you are running on a linux system, you must use the package manager of that distribution to install the python libraries, not pip.
     You have no files and you have to create them or search for them yourself (on linux it is find -name "file name or part of it", on windows dir <disk to search> /s | find /i "<your text>").
@@ -33,16 +35,19 @@ Answer format:
     Make sure your response can be read with json.loads(). """+f"""
 Make sure your console command is for the OS {platform.uname()[0]} {platform.uname()[1]}.
 Be sure to answer ONLY in JSON format."""
+
+#Предупреждение
 if platform.uname()[0].lower() == 'windows':
     print("Внимание!!! Для корректной установки доп. утилит на Windows у вас должен быть установлен пакетный менедежр choco и утилита git (желательно)....")
+
 # Функция для отправки запроса на сервер и получения ответа
 def ask(prompt):
-    # Подготавливаем данные для запроса
     data = {
         "prompt": prompt
     }
     payload = json.dumps(data)
-    # Устанавливаем заголовки
+    
+    # Заголовки запроса
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0",
         "Accept": "application/json, text/plain, */*",
@@ -51,30 +56,44 @@ def ask(prompt):
         "Origin": "https://chatbot.theb.ai",
         "Referer": "https://chatbot.theb.ai/"
     }
+    
     url = "https://chatbot.theb.ai/api/chat-process"
+    
     response = requests.post(url, data=payload, headers=headers)
-    response_text = response.text
-    json_strings = response_text.strip().split('\n')
-    last_json_string = json_strings[-1]
-    response_json = json.loads(last_json_string)
-    return response_json['text']
+    
+    #обработка ответа от API
+    responseText = response.text
+    jsonStrings = responseText.strip().split('\n')
+    lastJsonString = jsonStrings[-1]
+    responseJson = json.loads(lastJsonString)
+    
+    return responseJson['text']
 
-# Переводим введенный пользователем текст на английский язык
-SafeInput = translator.translate(input("Введите задачу >> "))
-# Создаем переменную endPrompt с информацией о системе и введенной пользователем задаче
-endPrompt = prompt+"\nMain task is: "+SafeInput
+# Переводим введенный пользователем текст на английский
+safeInput = translator.translate(input("Введите задачу >> "))
+
+# Объединение текста
+endPrompt = prompt+"\nMain task is: "+safeInput
+
 try:
-    # Запрашиваем ответ от сервера
+    # Ответ от GPT
     out1 = ask(endPrompt)
-    # Извлекаем из ответа JSON-строку
+    
+    # Извлечение JSON из ответа
     start = out1.find("{")
     end = out1.rfind("}") + 1
     out = out1[start:end]
     print(out)
+    
     status = input('Вы подтверждаете выполнение данной команды (y/n)? >> ')
+    
+    # Выполнение команды
     if status == 'y':
-        # Извлекаем из JSON-строки имя команды
+        
+        # Извлекаем имя команды
         command = json.loads(out)['name']
+        
+        # Промт для установки зависимостей.
         prompt_for_util = """User: command: git clone https://github.com/mchlebushec/gpt_in_terminal. Windows 10 OS.
 Assistant: {"command": "install", "args": "choco install git.install --params "'/GitAndUnixToolsOnPath /WindowsTerminal /NoAutoCrlf'""}
 User: command: pwd. Arch linux OS.
@@ -95,35 +114,57 @@ System:
         you answer only in the john format below:
             {"command": "command name", "args": "command argument"}
         Make sure your response can be read with json.loads() in python."""
+        
+        # Объединение текстов и запрос к GPT
         command_install_status = ask(prompt_for_util + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS")
+        
+        # Извлечение JSON
         command_install_status = json.loads(command_install_status[command_install_status.find("{"):command_install_status.rfind("}")+1])
+        
+        #Проверка нужны ли зависимости
         if command_install_status['command'] == 'system':
+            # Не нужны
             print("Комментарий ИИ: " + command_install_status['args'] )
             print("Команда является системной, продолжение работы.")
+        
         elif command_install_status['command'] == 'install':
+            # Зависимости нужны, попытка установить утилиту.
             confirmation = input("Утилита используемая в команде не является системной, команда для установки: '" + command_install_status['args'] + "'. подтверждаете ее установку? (y/n) >> ")
+            
             if confirmation == 'y':
                 print("Запуск установки утилиты....")
-                os.system(command_install_status['args'])
+                system(command_install_status['args'])
                 print("Установка завершена! ")
+            
             elif confirmation == 'n':
                 print("Пропуск установки уилиты....")
                 print("ВНИМАНИЕ! Основная команда может не сработать!")
+        
         elif command_install_status['command'] == 'cannot':
+            # Зависимости нужны но бот не может их установить самостоятельно
             print("Отзыв от ИИ: " + translator_to_ru.translate(command_install_status['args']))
+            
             status = input("Сожалеем, но программа не может установить утилиту используемую в команде. Установлена ли утилита для данной команды? (y/n) >> ")
+            
+            # Проверка установлена ли утилита
             if status == 'y':
                 print("Утилита установлена, продолжение работы....")
+            
             elif status == 'n':
                 print("Утилита не установлена, могут возникнуть ошибки в процессе выполнения команды....")
-        # Если команда - execute_shell, выполняем команду в терминале
+        
+        # Выполняем команду в терминале
         if command == "execute_shell":
-            os.system(json.loads(out)['args'])
+            system(json.loads(out)['args'])
+        
         else:
             print('Неизвестная команда от gpt...')
+    
     else:
         print("Ничего не сделано...")
-# Обрабатываем исключение ChunkedEncodingError
+
+# Обрабатываем исключение в случае ошибки в ходе получения овтета от GPT
 except requests.exceptions.ChunkedEncodingError:
     print("Ошибка запроса, попробуйте еще раз.")
+
 print("Done.")

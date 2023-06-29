@@ -1,8 +1,8 @@
 #импорты
 from os import getlogin, system
 import platform
-import json  
-import requests 
+import json
+import requests
 from translate import Translator
 
 # Переводчики
@@ -46,7 +46,7 @@ def ask(prompt):
         "prompt": prompt
     }
     payload = json.dumps(data)
-    
+
     # Заголовки запроса
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0",
@@ -56,17 +56,17 @@ def ask(prompt):
         "Origin": "https://chatbot.theb.ai",
         "Referer": "https://chatbot.theb.ai/"
     }
-    
+
     url = "https://chatbot.theb.ai/api/chat-process"
-    
+
     response = requests.post(url, data=payload, headers=headers)
-    
+
     #обработка ответа от API
     responseText = response.text
     jsonStrings = responseText.strip().split('\n')
     lastJsonString = jsonStrings[-1]
     responseJson = json.loads(lastJsonString)
-    
+
     return responseJson['text']
 
 # Переводим введенный пользователем текст на английский
@@ -78,21 +78,21 @@ endPrompt = prompt+"\nMain task is: "+safeInput
 try:
     # Ответ от GPT
     out1 = ask(endPrompt)
-    
+
     # Извлечение JSON из ответа
     start = out1.find("{")
     end = out1.rfind("}") + 1
-    out = out1[start:end]
+    out = out1[start:end].replace("'", '""')
     print(out)
-    
+
     status = input('Вы подтверждаете выполнение данной команды (y/n)? >> ')
-    
+
     # Выполнение команды
     if status == 'y':
-        
+
         # Извлекаем имя команды
         command = json.loads(out)['name']
-        
+
         # Промт для установки зависимостей.
         promptForUtil = """User: command: git clone https://github.com/mchlebushec/gpt_in_terminal. Windows 10 OS.
 Assistant: {"command": "install", "args": "choco install git.install --params "'/GitAndUnixToolsOnPath /WindowsTerminal /NoAutoCrlf'""}
@@ -115,49 +115,49 @@ System:
         you answer only in the john format below:
             {"command": "command name", "args": "command argument"}
         Make sure your response can be read with json.loads() in python."""
-        
+
         # Объединение текстов и запрос к GPT
-        commandInstallStatus = ask(promptForUtil + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS")
-        
+        commandInstallStatus = ask(promptForUtil + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS").replace("'", '""')
+
         # Извлечение JSON
         commandInstallStatus = json.loads(commandInstallStatus[commandInstallStatus.find("{"):commandInstallStatus.rfind("}")+1])
-        
+
         #Проверка нужны ли зависимости
         if commandInstallStatus['command'] == 'system':
             # Не нужны
             print("Команда является системной, продолжение работы.")
-        
+
         elif commandInstallStatus['command'] == 'install':
             # Зависимости нужны, попытка установить утилиту.
             confirmation = input("Утилита используемая в команде не является системной, команда для установки: '" + commandInstallStatus['args'] + "'. подтверждаете ее установку? (y/n) >> ")
-            
+
             if confirmation == 'y':
                 print("Запуск установки утилиты....")
                 system(command_install_status['args'])
                 print("Установка завершена! ")
-            
+
             elif confirmation == 'n':
                 print("Пропуск установки уилиты....")
                 print("ВНИМАНИЕ! Основная команда может не сработать!")
-        
+
         elif commandInstallStatus['command'] == 'cannot':
             # Зависимости нужны но бот не может их установить самостоятельно
             status = input("Сожалеем, но программа не может установить утилиту используемую в команде. Установлена ли утилита для данной команды? (y/n) >> ")
-            
+
             # Проверка установлена ли утилита
             if status == 'y':
                 print("Утилита установлена, продолжение работы....")
-            
+
             elif status == 'n':
                 print("Утилита не установлена, могут возникнуть ошибки в процессе выполнения команды....")
-        
+
         # Выполняем команду в терминале
         if command == "execute_shell":
             system(json.loads(out)['args'])
-        
+
         else:
             print('Неизвестная команда от gpt...')
-    
+
     else:
         print("Ничего не сделано...")
 

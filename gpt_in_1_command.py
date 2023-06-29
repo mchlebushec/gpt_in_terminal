@@ -7,7 +7,7 @@ import platform
 
 # Переводчики
 translator = Translator(to_lang='en', from_lang='ru')
-translator_to_ru = Translator(to_lang='ru', from_lang='en')
+translatorToRu = Translator(to_lang='ru', from_lang='en')
 
 # Основной промт для GPT для генерации команд
 prompt = """Main task is: Create a test file.
@@ -94,7 +94,7 @@ try:
         command = json.loads(out)['name']
         
         # Промт для установки зависимостей.
-        prompt_for_util = """User: command: git clone https://github.com/mchlebushec/gpt_in_terminal. Windows 10 OS.
+        promptForUtil = """User: command: git clone https://github.com/mchlebushec/gpt_in_terminal. Windows 10 OS.
 Assistant: {"command": "install", "args": "choco install git.install --params "'/GitAndUnixToolsOnPath /WindowsTerminal /NoAutoCrlf'""}
 User: command: pwd. Arch linux OS.
 Assistant: {"command": "system", "args": "any text"}
@@ -116,20 +116,20 @@ System:
         Make sure your response can be read with json.loads() in python."""
         
         # Объединение текстов и запрос к GPT
-        command_install_status = ask(prompt_for_util + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS")
+        commandInstallStatus = ask(promptForUtil + "\nUser: command: " + json.loads(out)['args'] + ". " + platform.uname()[0] + " " + platform.uname()[1] + " OS")
         
         # Извлечение JSON
-        command_install_status = json.loads(command_install_status[command_install_status.find("{"):command_install_status.rfind("}")+1])
+        commandInstallStatus = json.loads(commandInstallStatus[commandInstallStatus.find("{"):commandInstallStatus.rfind("}")+1])
         
         #Проверка нужны ли зависимости
-        if command_install_status['command'] == 'system':
+        if commandInstallStatus['command'] == 'system':
             # Не нужны
-            print("Комментарий ИИ: " + command_install_status['args'] )
+            print("Комментарий ИИ: " + commandInstallStatus['args'] )
             print("Команда является системной, продолжение работы.")
         
-        elif command_install_status['command'] == 'install':
+        elif commandInstallStatus['command'] == 'install':
             # Зависимости нужны, попытка установить утилиту.
-            confirmation = input("Утилита используемая в команде не является системной, команда для установки: '" + command_install_status['args'] + "'. подтверждаете ее установку? (y/n) >> ")
+            confirmation = input("Утилита используемая в команде не является системной, команда для установки: '" + commandInstallStatus['args'] + "'. подтверждаете ее установку? (y/n) >> ")
             
             if confirmation == 'y':
                 print("Запуск установки утилиты....")
@@ -140,9 +140,9 @@ System:
                 print("Пропуск установки уилиты....")
                 print("ВНИМАНИЕ! Основная команда может не сработать!")
         
-        elif command_install_status['command'] == 'cannot':
+        elif commandInstallStatus['command'] == 'cannot':
             # Зависимости нужны но бот не может их установить самостоятельно
-            print("Отзыв от ИИ: " + translator_to_ru.translate(command_install_status['args']))
+            print("Отзыв от ИИ: " + translatorToRu.translate(commandInstallStatus['args']))
             
             status = input("Сожалеем, но программа не может установить утилиту используемую в команде. Установлена ли утилита для данной команды? (y/n) >> ")
             

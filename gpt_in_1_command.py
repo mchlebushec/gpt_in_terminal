@@ -1,9 +1,9 @@
 #импорты
+from os import getlogin, system
+import platform
 import json  
 import requests 
 from translate import Translator
-from os import getlogin, system
-import platform
 
 # Переводчики
 translator = Translator(to_lang='en', from_lang='ru')

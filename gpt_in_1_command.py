@@ -22,8 +22,8 @@ Limitations:
     Remember that if you are running on a linux system, you must use the package manager of that distribution to install the python libraries, not pip.
     You have no files and you have to create them or search for them yourself (on linux it is find -name "file name or part of it", on windows dir <disk to search> /s | find /i "<your text>").
     For 1 answer you can use only 1 command.
-    Always close such signs as " { '.
-    When writing commands do not use the \ sign before the quotes, write commands as if directly into the console.
+    Always close such signs as " {.
+    Do not use single quotes ('), only double quotes (").
     Before using any utilities, try to install them on the PC.
     No help from the user and no questions to the user.
 Answer format:
@@ -106,6 +106,7 @@ System:
     Limitations:
         to install utilities on Linux, use the package manager (built-in).
         To install utilities on Windows use the choco package manager or the git utility.
+        Do not use single quotes ('), only double quotes (").
     Commands:
         1) "command" "system", means you can execute without installing utilities, "args": "any text"
         2) "command": "install", means you know the command to install the utility, "args": "command to install"
